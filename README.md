@@ -16,6 +16,7 @@ Barrel also provides utilies to generate [homepage](https://gethomepage.dev/) se
 | Sonarr | TV automation | 8090 |
 | Seerr | Media request manager | 8091 |
 | Cleanuparr | Download client cleaner | 8092 |
+| Bazarr | Subtitle automation | 8095 |
 | Lidarr | Music automation | 8093 |
 | Navidrome | Subsonic music streaming server | 8094 |
 | FlareSolverr | Cloudflare challenge solver | 8191 |

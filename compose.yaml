@@ -15,6 +15,7 @@ services:
       - ${RADARR_PORT}:7878
       - ${SONARR_PORT}:8989
       - ${LIDARR_PORT}:8686
+      - ${BAZARR_PORT}:6767
       - ${FLARESOLVERR_INTERNAL_PORT}:8191
       - ${TORRENT_LISTEN_PORT}:6881
       - ${TORRENT_LISTEN_PORT}:6881/udp
@@ -220,6 +221,23 @@ services:
     depends_on:
       - gluetun
       - qbittorrent
+    restart: ${RESTART_POLICY}
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./bazarr:/config
+      - ${DOWNLOADS_PATH}:/downloads
+    depends_on:
+      - gluetun
+      - radarr
+      - sonarr
     restart: ${RESTART_POLICY}
 
   navidrome:

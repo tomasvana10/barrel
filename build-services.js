@@ -125,6 +125,17 @@ function buildYaml() {
           },
         },
         {
+          name: "Bazarr",
+          subdomain: env.BAZARR_SUBDOMAIN || "bazarr",
+          icon: "bazarr",
+          description: "Subtitle manager",
+          port: "BAZARR_PORT",
+          widget: {
+            type: "bazarr",
+            fields: [["key", env.BAZARR_KEY]],
+          },
+        },
+        {
           name: "Lidarr",
           subdomain: env.LIDARR_SUBDOMAIN || "lidarr",
           icon: "lidarr",
