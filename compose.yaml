@@ -33,7 +33,7 @@ services:
       - TZ=${TZ}
       - UPDATER_PERIOD=${UPDATER_PERIOD}
     healthcheck:
-      test: wget -q --spider http://localhost:9999 || exit 1
+      test: wget -q -O /dev/null http://localhost:9999 || exit 1
       interval: 30s
       timeout: 5s
       start_period: 30s
