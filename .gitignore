@@ -1,4 +1,5 @@
 # secret!
+*.env
 config/.local.*.env
 
 node_modules/
