@@ -1,8 +1,5 @@
 # add this to the main compose file if you want to run homepage together with the media suite
 
-env_file:
-  - config/.homepage.env
-
 services:
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
