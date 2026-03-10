@@ -1,10 +1,5 @@
 name: torrentsuite
 
-env_file:
-  - config/.shared.env
-  - config/.compose.env
-  - config/.local.compose.env
-
 services:
   gluetun:
     image: qmcgaw/gluetun:latest
