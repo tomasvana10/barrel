@@ -32,6 +32,12 @@ services:
       - SERVER_COUNTRIES=${SERVER_COUNTRIES}
       - TZ=${TZ}
       - UPDATER_PERIOD=${UPDATER_PERIOD}
+    healthcheck:
+      test: wget -q --spider http://localhost:9999 || exit 1
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
     restart: ${RESTART_POLICY}
 
   qbittorrent:
@@ -46,8 +52,15 @@ services:
     volumes:
       - ./qbittorrent:/config
       - ${DOWNLOADS_PATH}:/downloads
+    healthcheck:
+      test: curl -f http://localhost:8085 || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     depends_on:
-      - gluetun
+      gluetun:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   flood:
@@ -61,8 +74,15 @@ services:
     volumes:
       - ./flood:/config
       - ${DOWNLOADS_PATH}:/downloads
+    healthcheck:
+      test: wget -q --spider http://localhost:3000 || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
     depends_on:
-      - qbittorrent
+      qbittorrent:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   radarr:
@@ -76,9 +96,17 @@ services:
     volumes:
       - ./radarr:/config
       - ${DOWNLOADS_PATH}:/downloads
+    healthcheck:
+      test: curl -f http://localhost:7878/ping || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     depends_on:
-      - gluetun
-      - qbittorrent
+      gluetun:
+        condition: service_healthy
+      qbittorrent:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   sonarr:
@@ -92,9 +120,17 @@ services:
     volumes:
       - ./sonarr:/config
       - ${DOWNLOADS_PATH}:/downloads
+    healthcheck:
+      test: curl -f http://localhost:8989/ping || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     depends_on:
-      - gluetun
-      - qbittorrent
+      gluetun:
+        condition: service_healthy
+      qbittorrent:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   jellyfin:
@@ -111,6 +147,12 @@ services:
       - ${DOWNLOADS_PATH}/music:/media/music
     ports:
       - ${JELLYFIN_PORT}:8096
+    healthcheck:
+      test: curl -f http://localhost:8096/health || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     restart: ${RESTART_POLICY}
 
   prowlarr:
@@ -123,8 +165,15 @@ services:
       - TZ=${TZ}
     volumes:
       - ./prowlarr:/config
+    healthcheck:
+      test: curl -f http://localhost:9696/ping || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     depends_on:
-      - gluetun
+      gluetun:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   flaresolverr:
@@ -133,8 +182,15 @@ services:
     environment:
       - TZ=${TZ}
     network_mode: "service:gluetun"
+    healthcheck:
+      test: curl -f http://localhost:8191/health || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     depends_on:
-      - gluetun
+      gluetun:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   seerr:
@@ -156,9 +212,12 @@ services:
       interval: 15s
       retries: 3
     depends_on:
-      - jellyfin
-      - radarr
-      - sonarr
+      jellyfin:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   cleanuparr:
@@ -181,9 +240,12 @@ services:
       start_period: 30s
       retries: 3
     depends_on:
-      - radarr
-      - sonarr
-      - qbittorrent
+      radarr:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+      qbittorrent:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   ts-subnet:
@@ -205,6 +267,12 @@ services:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - net_admin
+    healthcheck:
+      test: tailscale status || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     restart: ${RESTART_POLICY}
 
   lidarr:
@@ -218,9 +286,17 @@ services:
     volumes:
       - ./lidarr:/config
       - ${DOWNLOADS_PATH}:/downloads
+    healthcheck:
+      test: curl -f http://localhost:8686/ping || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     depends_on:
-      - gluetun
-      - qbittorrent
+      gluetun:
+        condition: service_healthy
+      qbittorrent:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   bazarr:
@@ -234,10 +310,19 @@ services:
     volumes:
       - ./bazarr:/config
       - ${DOWNLOADS_PATH}:/downloads
+    healthcheck:
+      test: curl -f http://localhost:6767/api/system/status || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     depends_on:
-      - gluetun
-      - radarr
-      - sonarr
+      gluetun:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   navidrome:
@@ -251,4 +336,10 @@ services:
       - ${DOWNLOADS_PATH}/music:/music:ro
     ports:
       - ${NAVIDROME_PORT}:4533
+    healthcheck:
+      test: wget -q --spider http://localhost:4533/ping || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
     restart: ${RESTART_POLICY}
