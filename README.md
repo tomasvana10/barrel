@@ -26,5 +26,5 @@ Barrel also provides utilies to generate [homepage](https://gethomepage.dev/) se
 
 1. Copy the example env files and fill in your secrets: `cp config/templates/. config/`
 2. Review `config/.shared.env` for changes in shared configurations and `config/.compose.env` for docker compose related config.
-3. Build the Homepage services file: `pnpm i && pnpm build`. Move the `_homepage.compose.yaml` if you wish to run it along with the media suite.
+3. Build the Homepage services file: `pnpm i && pnpm build`. Move the `_homepage.compose.yaml` service to `compose.yaml` if you wish to run it along with the media suite.
 4. Start the media suite: `chmod +x start.sh && ./start.sh`
