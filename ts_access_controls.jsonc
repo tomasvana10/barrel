@@ -1,0 +1,23 @@
+{
+  "tagOwners": {
+    "tag:container": ["autogroup:admin"]
+  },
+  "groups": {
+    "group:friends": [
+      /* enter your friend's emails here */
+    ]
+  },
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["autogroup:admin"],
+      "dst": ["tag:container:*"]
+    },
+    {
+      "action": "accept",
+      "src": ["group:friends"],
+      // jellyfin, seerr, lidarr and navidrome
+      "dst": ["tag:container:8087,8091,8093,8094"]
+    }
+  ]
+}

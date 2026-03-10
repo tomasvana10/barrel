@@ -1,0 +1,241 @@
+name: torrentsuite
+
+env_file:
+  - config/.shared.env
+  - config/.compose.env
+  - config/.local.compose.env
+
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - ${QBITTORRENT_PORT}:8085
+      - ${FLOOD_PORT}:3000
+      - ${PROWLARR_PORT}:9696
+      - ${RADARR_PORT}:7878
+      - ${SONARR_PORT}:8989
+      - ${LIDARR_PORT}:8686
+      - ${FLARESOLVERR_INTERNAL_PORT}:8191
+      - ${TORRENT_LISTEN_PORT}:6881
+      - ${TORRENT_LISTEN_PORT}:6881/udp
+    volumes:
+      - ./gluetun:/gluetun
+    environment:
+      - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS}
+      - VPN_IPV6=${VPN_IPV6}
+      - FIREWALL_VPN_INPUT_PORTS=${TORRENT_LISTEN_PORT}
+      - SERVER_CATEGORIES=${SERVER_CATEGORIES}
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - SERVER_COUNTRIES=${SERVER_COUNTRIES}
+      - TZ=${TZ}
+      - UPDATER_PERIOD=${UPDATER_PERIOD}
+    restart: ${RESTART_POLICY}
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8085
+    volumes:
+      - ./qbittorrent:/config
+      - ${DOWNLOADS_PATH}:/downloads
+    depends_on:
+      - gluetun
+    restart: ${RESTART_POLICY}
+
+  flood:
+    image: jesec/flood
+    container_name: flood
+    network_mode: "service:gluetun"
+    user: ${PUID}:${PGID}
+    command: --port 3000 --allowedpath /downloads
+    environment:
+      HOME: /config
+    volumes:
+      - ./flood:/config
+      - ${DOWNLOADS_PATH}:/downloads
+    depends_on:
+      - qbittorrent
+    restart: ${RESTART_POLICY}
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./radarr:/config
+      - ${DOWNLOADS_PATH}:/downloads
+    depends_on:
+      - gluetun
+      - qbittorrent
+    restart: ${RESTART_POLICY}
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./sonarr:/config
+      - ${DOWNLOADS_PATH}:/downloads
+    depends_on:
+      - gluetun
+      - qbittorrent
+    restart: ${RESTART_POLICY}
+
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./jellyfin:/config
+      - ${DOWNLOADS_PATH}/movies:/media/movies
+      - ${DOWNLOADS_PATH}/tv:/media/tv
+      - ${DOWNLOADS_PATH}/music:/media/music
+    ports:
+      - ${JELLYFIN_PORT}:8096
+    restart: ${RESTART_POLICY}
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./prowlarr:/config
+    depends_on:
+      - gluetun
+    restart: ${RESTART_POLICY}
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - TZ=${TZ}
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    restart: ${RESTART_POLICY}
+
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    init: true
+    container_name: seerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=${TZ}
+      - PORT=5055
+    ports:
+      - ${SEERR_PORT}:5055
+    volumes:
+      - ./seerr:/app/config
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      retries: 3
+    depends_on:
+      - jellyfin
+      - radarr
+      - sonarr
+    restart: ${RESTART_POLICY}
+
+  cleanuparr:
+    image: ghcr.io/cleanuparr/cleanuparr:latest
+    container_name: cleanuparr
+    ports:
+      - ${CLEANUPARR_PORT}:11011
+    volumes:
+      - ./cleanuparr:/config
+      - ${DOWNLOADS_PATH}:/downloads
+    environment:
+      - PORT=11011
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    depends_on:
+      - radarr
+      - sonarr
+      - qbittorrent
+    restart: ${RESTART_POLICY}
+
+  ts-subnet:
+    image: tailscale/tailscale:latest
+    container_name: ts-subnet
+    hostname: mediaserver
+    network_mode: host
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_AUTH_ONCE=true
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_ACCEPT_DNS=true
+      - TS_ROUTES=192.168.1.0/24
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container
+    volumes:
+      - ./ts-subnet:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+    restart: ${RESTART_POLICY}
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./lidarr:/config
+      - ${DOWNLOADS_PATH}:/downloads
+    depends_on:
+      - gluetun
+      - qbittorrent
+    restart: ${RESTART_POLICY}
+
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    environment:
+      - ND_SCANSCHEDULE=1h
+      - ND_LOGLEVEL=info
+    volumes:
+      - ./navidrome:/data
+      - ${DOWNLOADS_PATH}/music:/music:ro
+    ports:
+      - ${NAVIDROME_PORT}:4533
+    restart: ${RESTART_POLICY}

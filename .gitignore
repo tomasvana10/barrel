@@ -1,0 +1,19 @@
+# secret!
+config/.local.*.env
+
+node_modules/
+services.yaml
+
+# services
+cleanuparr/
+flood/
+gluetun/
+jellyfin/
+lidarr/
+navidrome/
+prowlarr/
+qbittorrent/
+radarr/
+seerr/
+sonarr/
+ts-subnet/
