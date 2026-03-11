@@ -256,8 +256,10 @@ services:
       - ./headscale/config:/etc/headscale
       - ./headscale/lib:/var/lib/headscale
       - ./headscale/run:/var/run/headscale
+      - /etc/letsencrypt/live/${HEADSCALE_DOMAIN}:/etc/headscale/tls:ro
+      - /etc/letsencrypt/archive/${HEADSCALE_DOMAIN}:/etc/letsencrypt/archive/${HEADSCALE_DOMAIN}:ro
     ports:
-      - ${HEADSCALE_PORT}:8080
+      - ${HEADSCALE_PORT}:443
     healthcheck:
       test: ["NONE"]
       interval: 30s

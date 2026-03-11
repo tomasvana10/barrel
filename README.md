@@ -62,16 +62,34 @@ docker exec headscale headscale users create admin
 docker exec headscale headscale users list
 
 # generate a pre-auth key for the subnet router and set it as TS_AUTHKEY in config/.local.compose.env
-docker exec headscale headscale preauthkeys create --user 1 --reusable --tags tag:container -e 2160h
+docker exec headscale headscale preauthkeys create --user 1 --reusable -e 2160h
 
 # create a user for each friend
 docker exec headscale headscale users create friend1
 
 # generate a one-time auth key for them to connect
-docker exec headscale headscale preauthkeys create --user <friend user id>
+docker exec headscale headscale preauthkeys create --user <friend user id> -e 48h
 ```
 
 Your friends can connect their Tailscale client with:
 ```bash
 tailscale up --login-server=https://headscale.yourdomain.com --authkey=<key>
 ```
+
+### Networking
+
+Headscale must be directly reachable by Tailscale clients. It cannot run behind a Cloudflare Tunnel due to incompatible WebSocket upgrade headers.
+
+1. Generate a TLS certificate using Cloudflare DNS validation:
+   ```bash
+   CF_API_TOKEN=xxx HEADSCALE_DOMAIN=headscale.yourdomain.com ./scripts/setup-cert.sh
+   ```
+   Renewal is automatic via certbot's systemd timer. Headscale is restarted on renewal automatically.
+
+2. Port forward `HEADSCALE_PORT` on your router to your server.
+
+3. Add an unproxied DNS address record for `headscale.yourdomain.com` pointing to your public IP. If you don't have a static IP, use this script to keep it updated:
+   ```bash
+   CF_API_TOKEN=xxx CF_ZONE_ID=xxx CF_RECORD_NAME=headscale.yourdomain.com ./scripts/update-dns.sh
+   ```
+
