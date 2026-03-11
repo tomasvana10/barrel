@@ -10,7 +10,6 @@ services:
       - /dev/net/tun:/dev/net/tun
     ports:
       - ${QBITTORRENT_PORT}:8085
-      - ${FLOOD_PORT}:3000
       - ${PROWLARR_PORT}:9696
       - ${RADARR_PORT}:7878
       - ${SONARR_PORT}:8989
@@ -63,25 +62,20 @@ services:
         condition: service_healthy
     restart: ${RESTART_POLICY}
 
-  flood:
-    image: jesec/flood
-    container_name: flood
-    network_mode: "service:gluetun"
-    user: ${PUID}:${PGID}
-    command: --port 3000 --allowedpath /downloads
+  aurral:
+    image: ghcr.io/lklynet/aurral:latest
+    container_name: aurral
     environment:
-      HOME: /config
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - DOWNLOAD_FOLDER=${DOWNLOADS_PATH}/tmp
     volumes:
-      - ./flood:/config
-      - ${DOWNLOADS_PATH}:/downloads
-    healthcheck:
-      test: wget -q --spider http://localhost:3000 || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 15s
-      retries: 3
+      - ./aurral:/app/backend/data
+      - ${DOWNLOADS_PATH}/tmp:/app/downloads
+    ports:
+      - ${AURRAL_PORT}:3001
     depends_on:
-      qbittorrent:
+      lidarr:
         condition: service_healthy
     restart: ${RESTART_POLICY}
 

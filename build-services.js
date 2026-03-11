@@ -46,18 +46,12 @@ function buildYaml() {
       name: "Media & Torrents",
       services: [
         {
-          name: "Flood",
-          subdomain: env.FLOOD_SUBDOMAIN || "flood",
-          icon: "flood",
-          description: "Torrent UI",
-          port: "FLOOD_PORT",
-          widget: {
-            type: "flood",
-            fields: [
-              ["username", env.FLOOD_USER],
-              ["password", env.FLOOD_PASS],
-            ],
-          },
+          name: "Aurral",
+          subdomain: env.AURRAL_SUBDOMAIN || "aurral",
+          icon: "mdi-music-box",
+          description: "Music discovery for Lidarr",
+          port: "AURRAL_PORT",
+          pingPath: "/",
         },
         {
           name: "qBittorrent",

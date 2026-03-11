@@ -9,7 +9,7 @@ Barrel also provides utilies to generate [homepage](https://gethomepage.dev/) se
 | Service | Description | External Port (`.shared.env`) |
 |---|---|---|
 | qBittorrent | Torrent client | 8085 |
-| Flood | qBittorrent web UI | 8086 |
+| Aurral | Music discovery and requests for Lidarr | 8086 |
 | Jellyfin | Media server | 8087 |
 | Prowlarr | Indexer manager | 8088 |
 | Radarr | Movie automation | 8089 |
