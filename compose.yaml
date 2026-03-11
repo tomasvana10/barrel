@@ -70,6 +70,9 @@ services:
       - PGID=${PGID}
       - DOWNLOAD_FOLDER=${DOWNLOADS_PATH}/tmp
       - CONTACT_EMAIL=${MUSICBRAINZ_CONTACT_EMAIL}
+      - NODE_OPTIONS=--dns-result-order=ipv4first
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
     volumes:
       - ./aurral:/app/backend/data
       - ${DOWNLOADS_PATH}/tmp:/app/downloads
