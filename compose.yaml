@@ -351,6 +351,7 @@ services:
     environment:
       - ND_SCANSCHEDULE=1h
       - ND_LOGLEVEL=info
+      - ND_SCANNER_PURGEMISSING=always
     volumes:
       - ./navidrome:/data
       - ${DOWNLOADS_PATH}/music:/music:ro
