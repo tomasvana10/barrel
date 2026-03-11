@@ -248,6 +248,24 @@ services:
         condition: service_healthy
     restart: ${RESTART_POLICY}
 
+  headscale:
+    image: headscale/headscale:latest
+    container_name: headscale
+    command: serve
+    volumes:
+      - ./headscale/config:/etc/headscale
+      - ./headscale/lib:/var/lib/headscale
+      - ./headscale/run:/var/run/headscale
+    ports:
+      - ${HEADSCALE_PORT}:8080
+    healthcheck:
+      test: wget -q --spider http://localhost:8080/health || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    restart: ${RESTART_POLICY}
+
   ts-subnet:
     image: tailscale/tailscale:latest
     container_name: ts-subnet
@@ -260,7 +278,7 @@ services:
       - TS_USERSPACE=false
       - TS_ACCEPT_DNS=true
       - TS_ROUTES=192.168.1.0/24
-      - TS_EXTRA_ARGS=--advertise-tags=tag:container
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container --login-server=http://localhost:${HEADSCALE_PORT}
     volumes:
       - ./ts-subnet:/var/lib/tailscale
     devices:
@@ -273,6 +291,9 @@ services:
       timeout: 10s
       start_period: 30s
       retries: 3
+    depends_on:
+      headscale:
+        condition: service_healthy
     restart: ${RESTART_POLICY}
 
   lidarr:

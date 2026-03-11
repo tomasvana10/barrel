@@ -18,3 +18,10 @@ radarr/
 seerr/
 sonarr/
 ts-subnet/
+bazarr/
+
+# headscale (secrets + state)
+headscale/config/config.yaml
+headscale/config/acl.json
+headscale/lib/
+headscale/run/
