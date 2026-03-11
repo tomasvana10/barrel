@@ -1,7 +1,4 @@
 {
-  "tagOwners": {
-    "tag:container": ["admin@"]
-  },
   "groups": {
     "group:friends": []
   },
@@ -9,12 +6,12 @@
     {
       "action": "accept",
       "src": ["admin@"],
-      "dst": ["tag:container:*"]
+      "dst": ["admin@:*"]
     },
     {
       "action": "accept",
       "src": ["group:friends"],
-      "dst": ["tag:container:8087,8091,8093,8094"]
+      "dst": ["admin@:8087,8091,8093,8094"]
     }
   ]
 }

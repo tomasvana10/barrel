@@ -58,14 +58,17 @@ After starting the suite for the first time, create your users and auth keys:
 # create admin user
 docker exec headscale headscale users create admin
 
+# get the admin user id
+docker exec headscale headscale users list
+
 # generate a pre-auth key for the subnet router and set it as TS_AUTHKEY in config/.local.compose.env
-docker exec headscale headscale preauthkeys create --user admin --reusable
+docker exec headscale headscale preauthkeys create --user 1 --reusable --tags tag:container -e 2160h
 
 # create a user for each friend
 docker exec headscale headscale users create friend1
 
 # generate a one-time auth key for them to connect
-docker exec headscale headscale preauthkeys create --user friend1
+docker exec headscale headscale preauthkeys create --user <friend user id>
 ```
 
 Your friends can connect their Tailscale client with:
