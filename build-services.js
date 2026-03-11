@@ -159,14 +159,6 @@ function buildYaml() {
           },
         },
         {
-          name: "Aurral",
-          subdomain: env.AURRAL_SUBDOMAIN || "aurral",
-          icon: "mdi-music-box",
-          description: "Music discovery for Lidarr",
-          port: "AURRAL_PORT",
-          pingPath: "/",
-        },
-        {
           name: "Headscale",
           subdomain: env.HEADSCALE_SUBDOMAIN || "headscale",
           icon: "tailscale",
@@ -174,11 +166,20 @@ function buildYaml() {
           port: "HEADSCALE_PORT",
           widget: {
             type: "headscale",
+            urlOverride: `https://${env.SERVICE_HOSTNAME}:${env.HEADSCALE_PORT}`,
             fields: [
               ["nodeId", env.HEADSCALE_NODE_ID],
               ["key", env.HEADSCALE_API_KEY],
             ],
           },
+        },
+        {
+          name: "Aurral",
+          subdomain: env.AURRAL_SUBDOMAIN || "aurral",
+          icon: "mdi-music-box",
+          description: "Music discovery for Lidarr",
+          port: "AURRAL_PORT",
+          pingPath: "/",
         },
         {
           name: "Cleanuparr",
@@ -202,7 +203,7 @@ function buildYaml() {
           ...(svc.widget && {
             widget: {
               type: svc.widget.type,
-              url: getWidgetUrl(svc.port),
+              url: svc.widget.urlOverride || getWidgetUrl(svc.port),
               ...getWidgetFields(svc.widget.fields),
             },
           }),
