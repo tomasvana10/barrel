@@ -69,6 +69,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - DOWNLOAD_FOLDER=${DOWNLOADS_PATH}/tmp
+      - CONTACT_EMAIL=${MUSICBRAINZ_CONTACT_EMAIL}
     volumes:
       - ./aurral:/app/backend/data
       - ${DOWNLOADS_PATH}/tmp:/app/downloads

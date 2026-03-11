@@ -93,3 +93,4 @@ Headscale must be directly reachable by Tailscale clients. It cannot run behind 
    CF_API_TOKEN=xxx CF_ZONE_ID=xxx CF_RECORD_NAME=headscale.yourdomain.com ./scripts/update-dns.sh
    ```
 
+https://github.com/juanfont/headscale/issues/117
