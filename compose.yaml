@@ -328,7 +328,7 @@ services:
       - ./bazarr:/config
       - ${DOWNLOADS_PATH}:/downloads
     healthcheck:
-      test: curl -f http://localhost:6767/api/system/status || exit 1
+      test: curl -f http://localhost:6767/ping || exit 1
       interval: 30s
       timeout: 10s
       start_period: 30s
