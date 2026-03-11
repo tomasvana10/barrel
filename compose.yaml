@@ -273,7 +273,7 @@ services:
       - TS_USERSPACE=false
       - TS_ACCEPT_DNS=true
       - TS_ROUTES=192.168.1.0/24
-      - TS_EXTRA_ARGS=--login-server=http://localhost:${HEADSCALE_PORT}
+      - TS_EXTRA_ARGS=--login-server=https://${HEADSCALE_DOMAIN}:${HEADSCALE_PORT}
     volumes:
       - ./ts-subnet:/var/lib/tailscale
     devices:
