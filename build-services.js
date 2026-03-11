@@ -46,14 +46,6 @@ function buildYaml() {
       name: "Media & Torrents",
       services: [
         {
-          name: "Aurral",
-          subdomain: env.AURRAL_SUBDOMAIN || "aurral",
-          icon: "mdi-music-box",
-          description: "Music discovery for Lidarr",
-          port: "AURRAL_PORT",
-          pingPath: "/",
-        },
-        {
           name: "qBittorrent",
           subdomain: env.QBITTORRENT_SUBDOMAIN || "qbt",
           icon: "qbittorrent",
@@ -163,6 +155,28 @@ function buildYaml() {
               ["user", env.NAVIDROME_USER],
               ["token", env.NAVIDROME_TOKEN],
               ["salt", env.NAVIDROME_SALT],
+            ],
+          },
+        },
+        {
+          name: "Aurral",
+          subdomain: env.AURRAL_SUBDOMAIN || "aurral",
+          icon: "mdi-music-box",
+          description: "Music discovery for Lidarr",
+          port: "AURRAL_PORT",
+          pingPath: "/",
+        },
+        {
+          name: "Headscale",
+          subdomain: env.HEADSCALE_SUBDOMAIN || "headscale",
+          icon: "tailscale",
+          description: "Self-hosted mesh VPN",
+          port: "HEADSCALE_PORT",
+          widget: {
+            type: "headscale",
+            fields: [
+              ["nodeId", env.HEADSCALE_NODE_ID],
+              ["key", env.HEADSCALE_API_KEY],
             ],
           },
         },
