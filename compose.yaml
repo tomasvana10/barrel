@@ -200,6 +200,7 @@ services:
     init: true
     container_name: seerr
     environment:
+      - LOG_LEVEL=info
       - TZ=${TZ}
       - PORT=5055
     ports:
