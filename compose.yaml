@@ -42,6 +42,10 @@ services:
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
+    deploy:
+      resources:
+        limits:
+          memory: 1g
     network_mode: "service:gluetun"
     environment:
       - PUID=${PUID}
