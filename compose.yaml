@@ -156,6 +156,8 @@ services:
       start_period: 30s
       retries: 3
     restart: ${RESTART_POLICY}
+    devices:
+      - /dev/dri:/dev/dri
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
