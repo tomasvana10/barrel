@@ -1,4 +1,10 @@
-name: torrentsuite
+name: barrel
+
+x-hc: &hc
+  interval: 5s
+  timeout: 5s
+  start_period: 30s
+  retries: 3
 
 services:
   gluetun:
@@ -6,18 +12,20 @@ services:
     container_name: gluetun
     cap_add:
       - NET_ADMIN
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - ${QBITTORRENT_PORT}:8085
-      - ${PROWLARR_PORT}:9696
-      - ${RADARR_PORT}:7878
-      - ${SONARR_PORT}:8989
-      - ${LIDARR_PORT}:8686
-      - ${BAZARR_PORT}:6767
-      - ${FLARESOLVERR_INTERNAL_PORT}:8191
-      - ${TORRENT_LISTEN_PORT}:6881
-      - ${TORRENT_LISTEN_PORT}:6881/udp
+      - 127.0.0.1:${QBITTORRENT_PORT}:8085
+      - 127.0.0.1:${PROWLARR_PORT}:9696
+      - 127.0.0.1:${RADARR_PORT}:7878
+      - 127.0.0.1:${SONARR_PORT}:8989
+      - 127.0.0.1:${LIDARR_PORT}:8686
+      - 127.0.0.1:${BAZARR_PORT}:6767
+      - 127.0.0.1:${TORRENT_LISTEN_PORT}:6881
+      - 127.0.0.1:${TORRENT_LISTEN_PORT}:6881/udp
     volumes:
       - ./gluetun:/gluetun
     environment:
@@ -31,12 +39,11 @@ services:
       - SERVER_COUNTRIES=${SERVER_COUNTRIES}
       - TZ=${TZ}
       - UPDATER_PERIOD=${UPDATER_PERIOD}
+      - DNS_SERVER=on
+      - DNS_UPSTREAM_PLAIN_ADDRESSES=1.1.1.1:53
     healthcheck:
+      <<: *hc
       test: wget -q -O /dev/null http://localhost:9999 || exit 1
-      interval: 30s
-      timeout: 5s
-      start_period: 30s
-      retries: 5
     restart: ${RESTART_POLICY}
 
   qbittorrent:
@@ -56,11 +63,8 @@ services:
       - ./qbittorrent:/config
       - ${DOWNLOADS_PATH}:/downloads
     healthcheck:
+      <<: *hc
       test: curl -f http://localhost:8085 || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     depends_on:
       gluetun:
         condition: service_healthy
@@ -81,7 +85,7 @@ services:
       - ./aurral:/app/backend/data
       - ${DOWNLOADS_PATH}/tmp:/app/downloads
     ports:
-      - ${AURRAL_PORT}:3001
+      - 127.0.0.1:${AURRAL_PORT}:3001
     depends_on:
       lidarr:
         condition: service_healthy
@@ -99,11 +103,8 @@ services:
       - ./radarr:/config
       - ${DOWNLOADS_PATH}:/downloads
     healthcheck:
+      <<: *hc
       test: curl -f http://localhost:7878/ping || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     depends_on:
       gluetun:
         condition: service_healthy
@@ -123,11 +124,8 @@ services:
       - ./sonarr:/config
       - ${DOWNLOADS_PATH}:/downloads
     healthcheck:
+      <<: *hc
       test: curl -f http://localhost:8989/ping || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     depends_on:
       gluetun:
         condition: service_healthy
@@ -150,11 +148,8 @@ services:
     ports:
       - ${JELLYFIN_PORT}:8096
     healthcheck:
+      <<: *hc
       test: curl -f http://localhost:8096/health || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     restart: ${RESTART_POLICY}
     devices:
       - /dev/dri:/dev/dri
@@ -169,12 +164,6 @@ services:
       - TZ=${TZ}
     volumes:
       - ./prowlarr:/config
-    healthcheck:
-      test: curl -f http://localhost:9696/ping || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     depends_on:
       gluetun:
         condition: service_healthy
@@ -186,12 +175,6 @@ services:
     environment:
       - TZ=${TZ}
     network_mode: "service:gluetun"
-    healthcheck:
-      test: curl -f http://localhost:8191/health || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     depends_on:
       gluetun:
         condition: service_healthy
@@ -209,12 +192,6 @@ services:
       - ${SEERR_PORT}:5055
     volumes:
       - ./seerr:/app/config
-    healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
-      start_period: 20s
-      timeout: 3s
-      interval: 15s
-      retries: 3
     depends_on:
       jellyfin:
         condition: service_healthy
@@ -228,7 +205,7 @@ services:
     image: ghcr.io/cleanuparr/cleanuparr:latest
     container_name: cleanuparr
     ports:
-      - ${CLEANUPARR_PORT}:11011
+      - 127.0.0.1:${CLEANUPARR_PORT}:11011
     volumes:
       - ./cleanuparr:/config
       - ${DOWNLOADS_PATH}:/downloads
@@ -237,12 +214,6 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     depends_on:
       radarr:
         condition: service_healthy
@@ -263,12 +234,6 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
     ports:
       - ${HEADSCALE_PORT}:443
-    healthcheck:
-      test: ["NONE"]
-      interval: 30s
-      timeout: 10s
-      start_period: 15s
-      retries: 3
     restart: ${RESTART_POLICY}
 
   ts-subnet:
@@ -290,12 +255,6 @@ services:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - net_admin
-    healthcheck:
-      test: tailscale status || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     depends_on:
       headscale:
         condition: service_started
@@ -313,11 +272,8 @@ services:
       - ./lidarr:/config
       - ${DOWNLOADS_PATH}:/downloads
     healthcheck:
+      <<: *hc
       test: curl -f http://localhost:8686/ping || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     depends_on:
       gluetun:
         condition: service_healthy
@@ -336,12 +292,6 @@ services:
     volumes:
       - ./bazarr:/config
       - ${DOWNLOADS_PATH}:/downloads
-    healthcheck:
-      test: curl -f http://localhost:6767/ping || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     depends_on:
       gluetun:
         condition: service_healthy
@@ -361,12 +311,7 @@ services:
     volumes:
       - ./navidrome:/data
       - ${DOWNLOADS_PATH}/music:/music:ro
+      - /mnt/hdd:/mnt/hdd:ro
     ports:
       - ${NAVIDROME_PORT}:4533
-    healthcheck:
-      test: wget -q --spider http://localhost:4533/ping || exit 1
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
     restart: ${RESTART_POLICY}

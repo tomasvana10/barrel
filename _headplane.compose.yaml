@@ -1,0 +1,14 @@
+headplane:
+  image: ghcr.io/tale/headplane:latest
+  container_name: headplane
+  volumes:
+    - ./headplane/config.yaml:/etc/headplane/config.yaml
+    - ./headplane/data:/var/lib/headplane
+    - ./headscale/config/config.yaml:/etc/headscale/config.yaml
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+  ports:
+     - 127.0.0.1:${HEADPLANE_PORT}:3000
+  depends_on:
+    headscale:
+      condition: service_started
+  restart: ${RESTART_POLICY}

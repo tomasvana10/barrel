@@ -22,18 +22,19 @@ Barrel also provides utilies to generate [homepage](https://gethomepage.dev/) se
 | FlareSolverr | Cloudflare challenge solver | 8191 |
 | Gluetun | Wireguard/OpenVPN client | n/a |
 | Headscale | Self-hosted Tailscale control server | 8096 |
+| Headplane | Headscale UI | 8097 |
 | Tailscale | Mesh VPN (subnet router) | n/a |
 
 ## Main Setup
 
 1. Copy the example env files and fill in your secrets:
    ```bash
-   `cp config/templates/.local.* config/`
+   cp config/templates/.local.* config/
    ```
 
-2. Review `config/.shared.env` for changes in shared configurations and `config/.compose.env` for docker compose related config.
+2. Review `config/.shared.env` and `config/.compose.env` for any configuration updates you might want to make.
 
-3. Create the media directories in your downloads path (matching `DOWNLOADS_PATH` in `.compose.env`):
+3. Create the media directories in your downloads path, matching `DOWNLOADS_PATH` in `.compose.env`:
    ```bash
    mkdir -p /path/to/volume/downloads/{movies,tv,music,torrents}
    ```
@@ -49,6 +50,8 @@ Barrel also provides utilies to generate [homepage](https://gethomepage.dev/) se
 5. Build the Homepage services file using `pnpm i && pnpm build`. Move the `_homepage.compose.yaml` service to `compose.yaml` if you wish to run it along with the media suite.
 
 6. Start the media suite: `./start.sh`
+
+
 
 ## Headscale Setup
 
@@ -76,21 +79,31 @@ Your friends can connect their Tailscale client with:
 tailscale up --login-server=https://headscale.yourdomain.com --authkey=<key>
 ```
 
+### Admin UI
+
+You can optionally add an admin UI for headscale.
+
+1. Ensure barrel is running.
+
+2. Run `scripts/setup-headplane.sh` to create a config file.
+
+2. Add the service in `_headplane.compose.yaml` and restart barrel.
+
 ### Networking
 
 Headscale must be directly reachable by Tailscale clients. It cannot run behind a Cloudflare Tunnel due to incompatible WebSocket upgrade headers.
 
 1. Generate a TLS certificate using Cloudflare DNS validation:
    ```bash
-   CF_API_TOKEN=xxx HEADSCALE_DOMAIN=headscale.yourdomain.com ./scripts/setup-cert.sh
+   CF_API_TOKEN=secret HEADSCALE_DOMAIN=headscale.yourdomain.com ./scripts/setup-cert.sh
    ```
    Renewal is automatic via certbot's systemd timer. Headscale is restarted on renewal automatically.
 
-2. Port forward `HEADSCALE_PORT` on your router to your server.
+2. Enable TCP port forwarding for `HEADSCALE_PORT` on your router.
 
-3. Add an unproxied DNS address record for `headscale.yourdomain.com` pointing to your public IP. If you don't have a static IP, use this script to keep it updated:
+3. Add an unproxied DNS address record for `headscale.yourdomain.com` pointing to your public IP. If you don't have a static IP, use these crontab entries to keep it updated:
    ```bash
-   CF_API_TOKEN=xxx CF_ZONE_ID=xxx CF_RECORD_NAME=headscale.yourdomain.com ./scripts/update-dns.sh
+   PATH=/usr/local/bin:/usr/bin:/bin
+   */3 * * * * CF_API_TOKEN=secret CF_ZONE_ID=secret CF_RECORD_NAME=headscale.yourdomain.com /path/to/barrel/scripts/update-dns.sh 2>&1 | tee -a /path/to/barrel/update-dns.log
    ```
 
-https://github.com/juanfont/headscale/issues/117

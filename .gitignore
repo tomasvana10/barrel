@@ -2,6 +2,7 @@
 *.env
 config/.local.*.env
 
+update-dns.log
 node_modules/
 services.yaml
 
@@ -19,5 +20,5 @@ seerr/
 sonarr/
 ts-subnet/
 bazarr/
-
 headscale/
+headplane/
